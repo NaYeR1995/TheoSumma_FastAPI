@@ -1,46 +1,26 @@
+from fastapi import FastAPI, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
+from src.db.database import get_db
+from src.db.models import User
 
-from fastapi import FastAPI, HTTPException
-from elasticsearch import AsyncElasticsearch
-from contextlib import asynccontextmanager
+app = FastAPI()
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    es = AsyncElasticsearch("http://localhost:9200")
-    app.state.es = es
-    try:
-        yield
-    finally:
-        await es.close()
+@app.get("/")
+async def home():
+    return {"message": "FastAPI & PostgreSQL with Docker"}
 
-app = FastAPI(lifespan=lifespan)
+@app.post("/users/")
+async def create_user(name: str, email: str, db: AsyncSession = Depends(get_db)):
+    new_user = User(name=name, email=email)
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+    return new_user
 
-@app.get('/')
-async def run():
-    return {"message"}
-
-# Ensure the index exists before indexing
-@app.post("/index/")
-async def index_document(index: str, doc_id: str, document: dict):
-    es: AsyncElasticsearch = app.state.es
-    
-    # Create index if it does not exist
-    exists = await es.indices.exists(index=index)
-    if not exists:
-        await es.indices.create(index=index)
-    
-    await es.index(index=index, id=doc_id, document=document)
-    return {"message": "Document indexed"}
-
-# Ensure the index exists before searching
-@app.get("/search/")
-async def search(index: str, query: str):
-    es: AsyncElasticsearch = app.state.es
-    
-    # Check if index exists before searching
-    exists = await es.indices.exists(index=index)
-    if not exists:
-        raise HTTPException(status_code=404, detail=f"Index '{index}' not found")
-
-    response = await es.search(index=index, query={"match": {"content": query}})
-    return response["hits"]["hits"]
+@app.get("/users/")
+async def get_users(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User))
+    users = result.scalars().all()
+    return users
