@@ -1,18 +1,19 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import SQLAlchemyError, NoResultFound
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 from fastapi import HTTPException
-from fastapi.responses import JSONResponse
 import uuid
 
 
 from src.Authentication.models.accountModel import User
 from src.Authentication.schema.accountSchema import UserCreate, UserUpdate, UserRead
+from src.Authentication.utilities.passwordUtilities import generate_pass_hash
 
 
 async def create_account(data: UserCreate, db: AsyncSession):
     """Service function to create a new user."""
     new_user = User(**data.model_dump())
+    new_user.password=generate_pass_hash(data.password)
     try:
         db.add(new_user)
         await db.commit()
@@ -26,11 +27,8 @@ async def create_account(data: UserCreate, db: AsyncSession):
         raise HTTPException(
             status_code=500, detail=f"Unexpected Error: {str(e)}")
 
-async def get_account(uid: uuid.UUID, db: AsyncSession) -> User:
+async def get_account(uid: str, db: AsyncSession) -> User:
     try:
-        if not isinstance(uid, uuid.UUID):
-            raise ValueError("Invalid UID format")
-        
         query = select(User).where(User.uid == uid)
         result = await db.execute(query)
         existing_user = result.scalars().first()

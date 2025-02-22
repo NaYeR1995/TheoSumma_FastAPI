@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-import uuid
 from src.Authentication.controller.accountController import (
     create_user_controller,
     update_user_controller,
