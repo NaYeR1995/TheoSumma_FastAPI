@@ -14,6 +14,3 @@ class User(SQLModel, table=True):
     is_system_user: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
-
-    class Config:
-        table_args = {"extend_existing": True}  # Allows redefining the table in SQLAlchemy metadata
