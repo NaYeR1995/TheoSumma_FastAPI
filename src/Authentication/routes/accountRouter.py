@@ -3,9 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.Authentication.controller.accountController import (
     create_user_controller,
     update_user_controller,
-    get_user_controller
+    get_user_controller,
+    Login_User_controller
 )
-from src.Authentication.schema.accountSchema import UserCreate, UserRead, UserUpdate
+from src.Authentication.schema.accountSchema import UserCreate, UserRead, UserUpdate, Login_data
 from src.db.database import get_db
 
 router = APIRouter(prefix="/Authentication", tags=["Accounts"])
@@ -24,3 +25,9 @@ async def get_user(uid: str, db: AsyncSession = Depends(get_db)):
 async def update_user(uid: str, data: UserUpdate, db: AsyncSession = Depends(get_db)):  
     """API endpoint to update user."""
     return await update_user_controller(uid, data, db) 
+
+@router.post("/login",response_model=UserRead)
+async def login_user(data: Login_data, db: AsyncSession = Depends(get_db)):
+        """API endpoint to Login user."""
+        return await Login_User_controller(data, db)
+

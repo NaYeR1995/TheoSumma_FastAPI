@@ -3,14 +3,16 @@ from typing import Optional
 import uuid
 from datetime import datetime
 
+
 class UserCreate(BaseModel):
     first_name: str = Field(min_length=1)
     last_name: str = Field(min_length=1)
-    username: EmailStr  
+    username: EmailStr
     password: str = Field(min_length=1)
-    country_id: Optional[int] = None  
-    gender: Optional[str] = None  
-    is_system_user: Optional[bool] = None  
+    country_id: Optional[int] = None
+    gender: Optional[str] = None
+    is_system_user: Optional[bool] = None
+
 
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
@@ -20,6 +22,7 @@ class UserUpdate(BaseModel):
     country_id: Optional[int] = None
     gender: Optional[str] = None
     is_system_user: Optional[bool] = None
+
 
 class UserRead(BaseModel):
     uid: uuid.UUID
@@ -31,3 +34,8 @@ class UserRead(BaseModel):
     is_system_user: bool
     created_at: datetime
     updated_at: datetime
+
+
+class Login_data(BaseModel):
+    username: EmailStr
+    password: str = Field(min_length=1)
